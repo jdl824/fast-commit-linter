@@ -5,10 +5,6 @@ branding:
   icon: "check-circle"
   color: "blue"
 
-categories:
-  - Utilities
-  - Code quality
-
 inputs:
   pr_title:
     description: "The PR title to validate"
