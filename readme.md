@@ -22,63 +22,117 @@ Instead of downloading heavy Node.js runtimes (`npm install`), this action execu
 | `custom_regex`    | Completely override the validation regex.       | No       | `""`                                                           |
 | `ignore_bots`     | Automatically skip validation for bot accounts. | No       | `true`                                                         |
 
-## 🛠️ Usage Examples
+## 💡 Example Inputs & Outputs
 
-### 1. Basic PR Title Linting (Most Common)
+Here is how the action behaves under different scenarios:
+
+### Example 1: Valid PR Title (Default Settings)
+
+**Input:**
 
 ```yaml
-name: Lint PR
-
-on:
-  pull_request:
-    types: [opened, edited, synchronize, reopened]
-
-jobs:
-  lint-title:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: harryvasanth/fast-commit-linter@v1
+with:
+  pr_title: "feat(auth): add JWT login support"
 ```
 
-### 2. Customizing Allowed Types
+**Output (Action passes):**
 
-Add your own team-specific types like `wip` or `hotfix`.
+```console
+=== Fast Conventional Commit Linter ===
+Using conventional commit regex with types: [feat,fix,docs,style,refactor,perf,test,build,ci,chore,revert]
+✓ Valid PR Title: "feat(auth): add JWT login support"
 
-```yaml
-jobs:
-  lint-title:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: harryvasanth/fast-commit-linter@v1
-        with:
-          allowed_types: "feat,fix,docs,chore,wip,hotfix"
+=== Validation Passed! ===
+
 ```
 
-### 3. Linting all commits inside a Pull Request
+### Example 2: Invalid PR Title
 
-If your team uses squash-merging, linting just the PR title is usually enough. But if you want to enforce that _every_ commit in the PR branch is valid:
+**Input:**
 
 ```yaml
-jobs:
-  lint-commits:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+with:
+  pr_title: "Added login support"
+```
 
-      - name: Get PR Commits
-        id: get-commits
-        run: |
-          COMMITS=$(git log --format=%s origin/${{ github.base_ref }}..origin/${{ github.head_ref }})
-          # Output multiline string safely
-          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          echo "messages<<$EOF" >> $GITHUB_OUTPUT
-          echo "$COMMITS" >> $GITHUB_OUTPUT
-          echo "$EOF" >> $GITHUB_OUTPUT
+**Output (Action fails and blocks the PR):**
 
-      - uses: harryvasanth/fast-commit-linter@v1
-        with:
-          pr_title: "" # Disable PR title check if you only want commit messages
-          commit_messages: ${{ steps.get-commits.outputs.messages }}
+```console
+=== Fast Conventional Commit Linter ===
+Using conventional commit regex with types: [feat,fix,docs,style,refactor,perf,test,build,ci,chore,revert]
+✖ Invalid PR Title: "Added login support"
+
+=== Validation Failed ===
+Expected format: <type>[optional scope][!]: <description>
+Example 1: feat(api): add new authentication endpoint
+Example 2: fix!: breaking change to database schema
+Allowed types: feat,fix,docs,style,refactor,perf,test,build,ci,chore,revert
+Error: Process completed with exit code 1.
+
+```
+
+### Example 3: Custom Allowed Types (e.g., adding `wip`)
+
+**Input:**
+
+```yaml
+with:
+  pr_title: "wip(ui): draft new dashboard layout"
+  allowed_types: "feat,fix,wip"
+```
+
+**Output (Action passes):**
+
+```console
+=== Fast Conventional Commit Linter ===
+Using conventional commit regex with types: [feat,fix,wip]
+✓ Valid PR Title: "wip(ui): draft new dashboard layout"
+
+=== Validation Passed! ===
+
+```
+
+### Example 4: Validating Multiple Commits
+
+**Input:**
+
+```yaml
+with:
+  pr_title: ""
+  commit_messages: |
+    fix: resolve memory leak in worker
+    chore: update npm dependencies
+```
+
+**Output (Action passes):**
+
+```console
+=== Fast Conventional Commit Linter ===
+Using conventional commit regex with types: [feat,fix,docs,style,refactor,perf,test,build,ci,chore,revert]
+
+Checking individual commit messages...
+✓ Valid Commit: "fix: resolve memory leak in worker"
+✓ Valid Commit: "chore: update npm dependencies"
+
+=== Validation Passed! ===
+
+```
+
+### Example 5: Bot Auto-Ignore Triggered
+
+**Input:**
+_(Triggered by Dependabot opening a PR with a non-conventional title)_
+
+```yaml
+with:
+  pr_title: "Bump express from 4.18.1 to 4.18.2"
+  ignore_bots: "true"
+```
+
+**Output (Action passes without validating the title):**
+
+```console
+=== Fast Conventional Commit Linter ===
+✓ Skipping validation for automated bot account: dependabot[bot]
+
 ```
