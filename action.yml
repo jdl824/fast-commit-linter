@@ -1,4 +1,4 @@
-name: "Commit Linter"
+name: "Fast Commit Linter"
 description: "Lightning-fast, dependency-free PR title and commit message linter for Conventional Commits."
 author: "HarryVasanth"
 branding:
