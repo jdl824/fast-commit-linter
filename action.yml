@@ -1,0 +1,48 @@
+name: "Commit Linter"
+description: "Lightning-fast, dependency-free PR title and commit message linter for Conventional Commits."
+author: "HarryVasanth"
+branding:
+  icon: "check-circle"
+  color: "blue"
+
+categories:
+  - Utilities
+  - Code quality
+
+inputs:
+  pr_title:
+    description: "The PR title to validate"
+    required: false
+    default: ${{ github.event.pull_request.title }}
+  commit_messages:
+    description: "Newline-separated list of commit messages to validate (optional)"
+    required: false
+  allowed_types:
+    description: "Comma-separated list of allowed conventional commit types"
+    required: false
+    default: "feat,fix,docs,style,refactor,perf,test,build,ci,chore,revert"
+  custom_regex:
+    description: "Completely override the validation regex pattern"
+    required: false
+  ignore_bots:
+    description: "Skip validation for bot accounts (e.g., dependabot)"
+    required: false
+    default: "true"
+  github_actor:
+    description: "The GitHub actor (used automatically for bot detection)"
+    required: false
+    default: ${{ github.actor }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run linter script
+      shell: bash
+      env:
+        INPUT_PR_TITLE: ${{ inputs.pr_title }}
+        INPUT_COMMIT_MESSAGES: ${{ inputs.commit_messages }}
+        INPUT_ALLOWED_TYPES: ${{ inputs.allowed_types }}
+        INPUT_CUSTOM_REGEX: ${{ inputs.custom_regex }}
+        INPUT_IGNORE_BOTS: ${{ inputs.ignore_bots }}
+        INPUT_GITHUB_ACTOR: ${{ inputs.github_actor }}
+      run: ${{ github.action_path }}/lint-commits.sh
