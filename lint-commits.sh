@@ -79,9 +79,7 @@ fi
 # 5. Final Reporting
 if [ "$FAILURES" -gt 0 ]; then
 	echo -e "\n${RED}=== Validation Failed ===${NC}"
-	echo -e "${YELLOW}Expected format:${NC} <type>[optional scope][!]: <description>"
-	echo -e "${YELLOW}Example 1:${NC} feat(api): add new authentication endpoint"
-	echo -e "${YELLOW}Example 2:${NC} fix!: breaking change to database schema"
+	echo -e "${YELLOW}Expected format: No special chars allowed in PR Title"
 
 	if [ -z "$CUSTOM_REGEX" ]; then
 		echo -e "${YELLOW}Allowed types:${NC} ${ALLOWED_TYPES}"
